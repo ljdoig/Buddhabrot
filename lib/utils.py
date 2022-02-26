@@ -73,7 +73,7 @@ if __name__ == "__main__":
   num_iters = 1000
   num_extra_points = 0
   
-  saturation_multiplier = 1.5
+  saturation_multiplier = 3
 
   tally = get_tally(res, num_iters, num_extra_points)
   generate_greyscale_image(tally, saturation_multiplier)
