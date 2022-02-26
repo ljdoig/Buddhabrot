@@ -48,13 +48,20 @@ def get_tally(res, num_iters, num_points):
   else:
     print(f"Initialising tally with dimension {res}x{res}")
     tally = np.zeros((res,res))
-  print(f"Adding {num_points} points to tally")
+  print(f"Adding {num_points} points to tally with iteration limit {num_iters}")
   tally = populate_tally(tally, num_iters, num_points)
   np.savetxt(csv_filename, tally, delimiter=",")
+  print("Tally populated and saved", end = "\n\n")
   return tally
 
+def get_tallies(res, num_iters_list, num_points):
+  print("Getting 3 tallies, for RGB pixels respectively", end = "\n\n")
+  return tuple(
+    get_tally(res, num_iters, num_points) for num_iters in num_iters_list
+  )
+
 def generate_greyscale_image(tally, saturation_multiplier):
-  print("Generating image from tally")
+  print("Generating gresycale image from tally")
   image = pim.new("L", np.shape(tally))
   tally_max = np.amax(tally)
   for row in trange(np.shape(tally)[0]):
@@ -68,12 +75,40 @@ def generate_greyscale_image(tally, saturation_multiplier):
   date_time_str = date_time.strftime("%Y_%m_%d-%H_%M_%S")
   image.save(f"{OUTDIR}{date_time_str}.png")
 
+def generate_colour_image(rgb_tallies, saturation_multiplier):
+  # check all tallies have the same shape
+  shapes = [np.shape(tally) for tally in rgb_tallies]
+  assert(shapes.count(shapes[0]) == len(shapes))
+  shape = shapes[0]
+  
+  print("Generating colour image from tallies")
+  image = pim.new("RGB", shape)
+  tally_maxes = [np.amax(tally) for tally in rgb_tallies]
+  for row in trange(shape[0]):
+    for col in range(shape[1]):
+      # between 0 and saturation_multiplier
+      normalised_pixel = tuple(
+        saturation_multiplier * (tally[row, col] / tally_max)
+        for tally, tally_max in zip(rgb_tallies, tally_maxes)
+      )
+      pixel = tuple(int(normalised * 255) for normalised in normalised_pixel)
+      # swap row and col so that the shape is upright
+      image.putpixel((col, row), pixel)
+  date_time = dt.datetime.now()
+  date_time_str = date_time.strftime("%Y_%m_%d-%H_%M_%S")
+  image.save(f"{OUTDIR}{date_time_str}.png")
+
 if __name__ == "__main__":
   res = 800
-  num_iters = 1000
+  saturation_multiplier = 1.5
   num_extra_points = 0
-  
-  saturation_multiplier = 3
 
+  # greyscale image
+  num_iters = 2000
   tally = get_tally(res, num_iters, num_extra_points)
   generate_greyscale_image(tally, saturation_multiplier)
+
+  # colour image - list represents values for R, G and B tallies respectively
+  num_iters_list = [2000, 200, 20]
+  rgb_tallies = get_tallies(res, num_iters_list, num_extra_points)
+  generate_colour_image(rgb_tallies, saturation_multiplier)

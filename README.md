@@ -2,9 +2,8 @@
 
 ![Buddhabrot False-colour](./examples/FalseColour.jpeg)
 
-The Buddhabrot is a beautiful fractal shape, generated through similar iterations to Mandelbrot set images.
-To generate your own image, you can run `scripts/utils.py`. 
+The Buddhabrot is a beautiful fractal shape, generated through similar iterations to Mandelbrot set images. A brief description can be found below and more details can be found at https://en.wikipedia.org/wiki/Buddhabrot.
 
-Note that the scripts in utils will look for an existing tally of points with the specified resolution and iterlimit, and will add on any new points to that tally if it exists. Otherwise it will start from a zero-matrix.
+Buddhabrot visualises a probability distribution. We start by paritioning the complex plane into bins. Complex numbers are sampled uniformly from a circular region around the origin of the complex plane, then iterated according to the same rule as the Mandelbrot set: Z(n) = Z(n-1)^2 + c, where c is the sampled point and Z(0) = 0. If the point remains close to the origin after a predefined number of iterations k, we discard the sample, however if the point diverges then we increment each bin associated with a point in {Z(0),...,Z(k)}. By sampling many points this gives us a tally accross all the bins and then normalising these bin frequencies to values between 0 and 1, we can turn this into a greyscale image. Further, by creating 3 different tallies with a different number of iterations, we can create a false colour image whose colours come from the 3 tallies (one for red, green and blue, giving an RGB pixel).
 
-https://en.wikipedia.org/wiki/Buddhabrot
+To generate your own images, you can run `scripts/utils.py`, which will generate one greyscale image and one colour image. Note that this script will look for existing tallies in `./csvs` with the specified resolution and iterlimit. The number of new points specified will then be sampled and either added to an existing tally (if it exists) or to a zero-matrix.
