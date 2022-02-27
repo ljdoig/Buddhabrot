@@ -5,11 +5,15 @@ import datetime as dt
 import PIL.Image as pim
 import numpy as np
 from math import pi
-from os.path import exists
+import os.path
 from tqdm import trange
 
-OUTDIR = "./output/"
-CSVDIR = "./csvs/"
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
+
+OUTDIR = "../output/"
+CSVDIR = "../csvs/"
 
 # no need to change these values
 # unlike with mandelbrot/julia sets, field of view doesn't make plotting quicker
@@ -39,10 +43,10 @@ def populate_tally(tally, num_iters, num_points):
     trace_paths(tally, num_iters)
   return tally
 
-def get_tally(res, num_iters, num_points):
+def get_tally(res, num_iters, num_points, fresh=False):
   csv_basename = f"res{res}_maxiters{num_iters}.csv.gz"
   csv_filename = CSVDIR + csv_basename
-  if exists(csv_filename):
+  if os.path.exists(csv_filename) and not fresh:
     print("Tally already begun, loading from csv")
     tally = np.loadtxt(csv_filename, delimiter = ",")
   else:
@@ -50,14 +54,16 @@ def get_tally(res, num_iters, num_points):
     tally = np.zeros((res,res))
   print(f"Adding {num_points} points to tally with iteration limit {num_iters}")
   tally = populate_tally(tally, num_iters, num_points)
-  np.savetxt(csv_filename, tally, delimiter=",")
-  print("Tally populated and saved", end = "\n\n")
+  if not fresh and num_points > 0:
+    print("Saving tally to csv")
+    np.savetxt(csv_filename, tally, delimiter=",")
+  print("Tally ready", end = "\n\n")
   return tally
 
-def get_tallies(res, num_iters_list, num_points):
+def get_tallies(res, num_iters_list, num_points, fresh=False):
   print("Getting 3 tallies, for RGB pixels respectively", end = "\n\n")
   return tuple(
-    get_tally(res, num_iters, num_points) for num_iters in num_iters_list
+    get_tally(res, num_iters, num_points, fresh) for num_iters in num_iters_list
   )
 
 def generate_greyscale_image(tally, saturation_multiplier):
@@ -97,18 +103,3 @@ def generate_colour_image(rgb_tallies, saturation_multiplier):
   date_time = dt.datetime.now()
   date_time_str = date_time.strftime("%Y_%m_%d-%H_%M_%S")
   image.save(f"{OUTDIR}{date_time_str}.png")
-
-if __name__ == "__main__":
-  res = 800
-  saturation_multiplier = 1.5
-  num_extra_points = 0
-
-  # greyscale image
-  num_iters = 2000
-  tally = get_tally(res, num_iters, num_extra_points)
-  generate_greyscale_image(tally, saturation_multiplier)
-
-  # colour image - list represents values for R, G and B tallies respectively
-  num_iters_list = [2000, 200, 20]
-  rgb_tallies = get_tallies(res, num_iters_list, num_extra_points)
-  generate_colour_image(rgb_tallies, saturation_multiplier)
