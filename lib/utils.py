@@ -72,13 +72,14 @@ def generate_greyscale_image(tally, saturation_multiplier):
   print("Generating gresycale image from tally")
   image = pim.new("L", np.shape(tally))
   tally_max = np.amax(tally)
-  for row in trange(np.shape(tally)[0]):
-    for col in range(np.shape(tally)[1]):
-      # between 0 and saturation_multiplier
-      normalised_pixel = saturation_multiplier * (tally[row, col] / tally_max)
-      pixel = int(normalised_pixel * 255)
-      # swap row and col so that the shape is upright
-      image.putpixel((col, row), pixel)
+  if tally_max > 0:
+    for row in trange(np.shape(tally)[0]):
+      for col in range(np.shape(tally)[1]):
+        # between 0 and saturation_multiplier
+        normalised_pixel = saturation_multiplier * (tally[row, col] / tally_max)
+        pixel = int(normalised_pixel * 255)
+        # swap row and col so that the shape is upright
+        image.putpixel((col, row), pixel)
   date_time = dt.datetime.now()
   date_time_str = date_time.strftime("%Y_%m_%d-%H_%M_%S")
   image.save(f"{OUTDIR}{date_time_str}.png")
