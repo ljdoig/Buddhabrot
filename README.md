@@ -1,4 +1,4 @@
-# Buddhabrot - a ghostly probability distribution related to the Mandelbrot stet
+# Buddhabrot - a ghostly probability distribution related to the Mandelbrot set
 
 ![Buddhabrot False-colour](./examples/FalseColour.png)
 
