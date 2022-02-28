@@ -47,21 +47,23 @@ def get_tally(res, num_iters, num_points, fresh=False):
   csv_basename = f"res{res}_maxiters{num_iters}.csv.gz"
   csv_filename = CSVDIR + csv_basename
   if os.path.exists(csv_filename) and not fresh:
-    print("Tally already begun, loading from csv")
+    print("Tally already exists, loading from csv")
     tally = np.loadtxt(csv_filename, delimiter = ",")
   else:
     print(f"Initialising tally with dimension {res}x{res}")
     tally = np.zeros((res,res))
-  print(f"Adding {num_points} points to tally with iteration limit {num_iters}")
-  tally = populate_tally(tally, num_iters, num_points)
-  if not fresh and num_points > 0:
-    print("Saving tally to csv")
-    np.savetxt(csv_filename, tally, delimiter=",")
-  print("Tally ready", end = "\n\n")
+  if num_points > 0:
+    print(f"Adding {num_points} points to tally with iteration limit {num_iters}")
+    tally = populate_tally(tally, num_iters, num_points)
+    if not fresh:
+      print("Saving tally to csv")
+      np.savetxt(csv_filename, tally, delimiter=",")
+  else:
+    print("Tally ready", end = "\n\n")
   return tally
 
 def get_tallies(res, num_iters_list, num_points, fresh=False):
-  print("Getting 3 tallies, for RGB pixels respectively", end = "\n\n")
+  print("Getting 3 tallies, one each for RGB pixels", end = "\n\n")
   return tuple(
     get_tally(res, num_iters, num_points, fresh) for num_iters in num_iters_list
   )
