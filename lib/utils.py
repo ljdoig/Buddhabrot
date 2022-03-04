@@ -43,9 +43,9 @@ def populate_tally(tally, num_iters, num_points):
     trace_paths(tally, num_iters)
   return tally
 
-def get_tally(res, num_iters, num_points, fresh=False):
+def get_tally(res, num_iters, num_points, fresh=False, csvdir=CSVDIR):
   csv_basename = f"res{res}_maxiters{num_iters}.csv.gz"
-  csv_filename = CSVDIR + csv_basename
+  csv_filename = csvdir + csv_basename
   if os.path.exists(csv_filename) and not fresh:
     print("Tally already exists, loading from csv")
     tally = np.loadtxt(csv_filename, delimiter = ",")
@@ -62,13 +62,14 @@ def get_tally(res, num_iters, num_points, fresh=False):
     print("Tally ready", end = "\n\n")
   return tally
 
-def get_tallies(res, num_iters_list, num_points, fresh=False):
+def get_tallies(res, num_iters_list, num_points, fresh=False, csvdir=CSVDIR):
   print("Getting 3 tallies, one each for RGB pixels", end = "\n\n")
   return tuple(
-    get_tally(res, num_iters, num_points, fresh) for num_iters in num_iters_list
+    get_tally(res, num_iters, num_points, fresh, csvdir) 
+    for num_iters in num_iters_list
   )
 
-def generate_greyscale_image(tally, saturation_multiplier):
+def generate_greyscale_image(tally, saturation_multiplier, outdir=OUTDIR):
   print("Generating gresycale image from tally")
   image = pim.new("L", np.shape(tally))
   tally_max = np.amax(tally)
@@ -82,9 +83,9 @@ def generate_greyscale_image(tally, saturation_multiplier):
         image.putpixel((col, row), pixel)
   date_time = dt.datetime.now()
   date_time_str = date_time.strftime("%Y_%m_%d-%H_%M_%S")
-  image.save(f"{OUTDIR}{date_time_str}.png")
+  image.save(f"{outdir}{date_time_str}.png")
 
-def generate_colour_image(rgb_tallies, saturation_multiplier):
+def generate_colour_image(rgb_tallies, saturation_multiplier, outdir=OUTDIR):
   # check all tallies have the same shape
   shapes = [np.shape(tally) for tally in rgb_tallies]
   assert(shapes.count(shapes[0]) == len(shapes))
@@ -105,4 +106,4 @@ def generate_colour_image(rgb_tallies, saturation_multiplier):
       image.putpixel((col, row), pixel)
   date_time = dt.datetime.now()
   date_time_str = date_time.strftime("%Y_%m_%d-%H_%M_%S")
-  image.save(f"{OUTDIR}{date_time_str}.png")
+  image.save(f"{outdir}{date_time_str}.png")
