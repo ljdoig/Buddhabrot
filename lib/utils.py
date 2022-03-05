@@ -12,8 +12,8 @@ abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 os.chdir(dname)
 
-OUTDIR = "../output/"
-CSVDIR = "../csvs/"
+OUTDIR = "../output"
+CSVDIR = "../csvs"
 
 # no need to change these values
 # unlike with mandelbrot/julia sets, field of view doesn't make plotting quicker
@@ -40,12 +40,13 @@ def trace_paths(tally, num_iters):
 
 def populate_tally(tally, num_iters, num_points):
   for _ in trange(num_points):
+    
     trace_paths(tally, num_iters)
   return tally
 
 def get_tally(res, num_iters, num_points, fresh=False, csvdir=CSVDIR):
   csv_basename = f"res{res}_maxiters{num_iters}.csv.gz"
-  csv_filename = csvdir + csv_basename
+  csv_filename = f"{csvdir}/{csv_basename}"
   if os.path.exists(csv_filename) and not fresh:
     print("Tally already exists, loading from csv")
     tally = np.loadtxt(csv_filename, delimiter = ",")
@@ -69,23 +70,29 @@ def get_tallies(res, num_iters_list, num_points, fresh=False, csvdir=CSVDIR):
     for num_iters in num_iters_list
   )
 
-def generate_greyscale_image(tally, saturation_multiplier, outdir=OUTDIR):
+def generate_greyscale_image(
+  tally, saturation_multiplier, outdir=OUTDIR, quantile=0.99
+  ):
   print("Generating gresycale image from tally")
   image = pim.new("L", np.shape(tally))
-  tally_max = np.amax(tally)
-  if tally_max > 0:
+  tally_normaliser = np.quantile(tally.flatten(), quantile)
+  if tally_normaliser > 0:
     for row in trange(np.shape(tally)[0]):
       for col in range(np.shape(tally)[1]):
         # between 0 and saturation_multiplier
-        normalised_pixel = saturation_multiplier * (tally[row, col] / tally_max)
+        normalised_pixel = saturation_multiplier * (
+          tally[row, col] / tally_normaliser
+        )
         pixel = int(normalised_pixel * 255)
         # swap row and col so that the shape is upright
         image.putpixel((col, row), pixel)
   date_time = dt.datetime.now()
   date_time_str = date_time.strftime("%Y_%m_%d-%H_%M_%S")
-  image.save(f"{outdir}{date_time_str}.png")
+  image.save(f"{outdir}/{date_time_str}.png")
 
-def generate_colour_image(rgb_tallies, saturation_multiplier, outdir=OUTDIR):
+def generate_colour_image(
+  rgb_tallies, saturation_multiplier, outdir=OUTDIR, quantile=0.995
+  ):
   # check all tallies have the same shape
   shapes = [np.shape(tally) for tally in rgb_tallies]
   assert(shapes.count(shapes[0]) == len(shapes))
@@ -93,17 +100,19 @@ def generate_colour_image(rgb_tallies, saturation_multiplier, outdir=OUTDIR):
   
   print("Generating colour image from tallies")
   image = pim.new("RGB", shape)
-  tally_maxes = [np.amax(tally) for tally in rgb_tallies]
+  tally_normalisers = [
+    np.quantile(tally.flatten(), quantile) for tally in rgb_tallies
+  ]
   for row in trange(shape[0]):
     for col in range(shape[1]):
       # between 0 and saturation_multiplier
       normalised_pixel = tuple(
-        saturation_multiplier * (tally[row, col] / tally_max)
-        for tally, tally_max in zip(rgb_tallies, tally_maxes)
+        saturation_multiplier * (tally[row, col] / tally_normaliser)
+        for tally, tally_normaliser in zip(rgb_tallies, tally_normalisers)
       )
       pixel = tuple(int(normalised * 255) for normalised in normalised_pixel)
       # swap row and col so that the shape is upright
       image.putpixel((col, row), pixel)
   date_time = dt.datetime.now()
   date_time_str = date_time.strftime("%Y_%m_%d-%H_%M_%S")
-  image.save(f"{outdir}{date_time_str}.png")
+  image.save(f"{outdir}/{date_time_str}.png")
