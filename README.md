@@ -9,6 +9,15 @@ Buddhabrot visualises a probability distribution over the complex numbers. We st
 Further, by creating 3 different tallies with a different number of iterations, we can create a false colour image whose colours come from the 3 tallies (one for red, green and blue, giving an RGB pixel). The image at the top of the page is composed of the following three greyscale images: red with k = 5000, green with k = 500 and blue with k = 50
 ![Buddhabrot False-colour-red](./examples/FalseColourRed.png) ![Buddhabrot False-colour-green](./examples/FalseColourGreen.png) ![Buddhabrot False-colour-blue](./examples/FalseColourBlue.png)
 
-These differences mean that the only real parameters to the images are the samplesize, the max number of iteraions and the resolution of the image. As each pixel is a bin, resolution doesn't actually increase compute time (unlike for Mandelbrot images) but the samplesize and max number of iterations do.
+These differences mean that the only real parameters to the images are the samplesize, the max number of iteraions and the resolution of the image. As each pixel is a bin, resolution doesn't actually increase compute time (unlike for Mandelbrot images) but the samplesize and max number of iterations do. The following gifs demonstrate how varying each of these parameters affects the result:
+
+Iteration limit
+![iteration gif](./gifs/iter.gif)
+
+Sample size
+![points gif](./gifs/points.gif)
+
+Resolution
+![res gif](./gifs/res.gif)
 
 To generate your own images, you can run `generate_greyscale.py` or `generate_rgb.py`. Adding a `-h` flag will show options for customising the output image. Note that these scrips will look for existing tallies stored in the `csvs` directory with the specified resolution and iterlimit. The number of new points specified will then be sampled and either added to an existing tally (if it exists) or to a zero-matrix. You can force a fresh start with the flag `--fresh`.
